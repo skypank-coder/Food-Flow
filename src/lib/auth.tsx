@@ -101,7 +101,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const demoInitial = readDemo();
   const [user, setUser] = useState<User | null>(demoInitial);
   const [loading, setLoading] = useState(!demoInitial);
-  const [error, setError] = useState<string | null>(demoInitial ? null : firebaseConfigError);
+  // Don't surface the "Firebase not configured" message on load — the demo
+  // workspace needs no Firebase. It only appears if someone actually uses the
+  // email login/signup (requireFirebase throws with this message there).
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // A demo session takes precedence and skips Firebase entirely so the

@@ -5,6 +5,7 @@ import { AuthShell } from "./AuthShell";
 import { Field, FormError, Select, PasswordNote } from "./fields";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { firebaseConfigError } from "@/lib/firebase";
 
 const ROLES = ["Operations", "FPO / Cooperative", "Processor", "Mandi / Market", "Food bank / NGO", "Logistics"];
 
@@ -63,12 +64,14 @@ export default function Signup() {
       >
         Enter demo workspace <ArrowRight size={16} />
       </Button>
+      {!firebaseConfigError && (
+      <>
       <div className="my-4 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-ink-3">
         <span className="h-px flex-1 bg-line" /> or create an account <span className="h-px flex-1 bg-line" />
       </div>
 
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Full name" icon={<UserIcon size={16} />} value={name} onChange={setName} placeholder="Ravi Kumar" autoFocus required autoComplete="name" />
+        <Field label="Full name" icon={<UserIcon size={16} />} value={name} onChange={setName} placeholder="Ravi Kumar" required autoComplete="name" />
         <Field label="Work email" icon={<Mail size={16} />} type="email" value={email} onChange={setEmail} placeholder="you@company.in" required autoComplete="email" />
         <Field label="Organization" icon={<Building2 size={16} />} value={org} onChange={setOrg} placeholder="FreshRoots FPO" />
         <Select label="Your role" value={role} onChange={setRole} options={ROLES} />
@@ -80,6 +83,8 @@ export default function Signup() {
         </Button>
         <PasswordNote />
       </form>
+      </>
+      )}
     </AuthShell>
   );
 }

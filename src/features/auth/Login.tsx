@@ -5,6 +5,7 @@ import { AuthShell } from "./AuthShell";
 import { Field, FormError, PasswordNote } from "./fields";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
+import { firebaseConfigError } from "@/lib/firebase";
 
 export default function Login() {
   const { signIn, sendPasswordReset, demoSignIn, error: authError } = useAuth();
@@ -75,6 +76,10 @@ export default function Login() {
       >
         Enter demo workspace <ArrowRight size={16} />
       </Button>
+      {/* Email login only shows when Firebase is configured — keeps the
+          pitch screen clean (demo only) while live login is on hold. */}
+      {!firebaseConfigError && (
+      <>
       <div className="my-4 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-ink-3">
         <span className="h-px flex-1 bg-line" /> or sign in with email <span className="h-px flex-1 bg-line" />
       </div>
@@ -87,7 +92,6 @@ export default function Login() {
           value={email}
           onChange={setEmail}
           placeholder="you@company.in"
-          autoFocus
           autoComplete="email"
           required
         />
@@ -113,6 +117,8 @@ export default function Login() {
         </Button>
         <PasswordNote />
       </form>
+      </>
+      )}
     </AuthShell>
   );
 }

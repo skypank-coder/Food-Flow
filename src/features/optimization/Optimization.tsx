@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Factory, Gauge, Play, RotateCcw, Store, Users } from "lucide-react";
+import { ArrowRight, Factory, Play, RotateCcw, Store, Users } from "lucide-react";
 import { PageHead } from "@/components/layout/PageHead";
 import { Card, SectionTitle, Badge, Button, LinkButton, Meter } from "@/components/ui";
 import { AllocationFlow } from "./AllocationFlow";
@@ -173,26 +173,6 @@ export default function Optimization() {
               </div>
             </Card>
           </div>
-
-          {/* How the optimizer decides */}
-          <Card className="mt-4 p-5">
-            <div className="flex items-center gap-2 text-sm font-semibold text-ink">
-              <Gauge size={16} className="text-brand" /> How the optimizer decides
-            </div>
-            <p className="mt-2 text-sm leading-relaxed text-ink-2">
-              The engine does <strong className="text-ink">not</strong> simply pick the highest price. It maximizes a
-              suitability score that balances:
-            </p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {["quantity", "recipient capacity", "demand deficit", "perishability", "urgency", "distance", "transport cost", "absorption certainty"].map((t) => (
-                <span key={t} className="rounded-lg bg-surface-2 px-2.5 py-1 text-xs text-ink-2">{t}</span>
-              ))}
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink-2">
-              It then fills the highest-scoring destinations first, up to each destination's absorbable capacity, until
-              the surplus is cleared.
-            </p>
-          </Card>
 
           <div className="mt-4">
             <OptimizerComparison scenario={scenario} />
