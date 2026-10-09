@@ -324,7 +324,7 @@ Scope: a pan-India network of **14 surplus events** across 11 states and **~32 c
 | Charts | Recharts |
 | Motion | Framer Motion |
 | Icons | lucide-react |
-| Auth | Lightweight client-side session (localStorage) — swappable for a real API |
+| Auth & data | **Firebase Authentication** (email/password) + **Cloud Firestore** (user profiles, operational updates) with locked-down security rules |
 
 ---
 
@@ -387,8 +387,39 @@ npm run build
 npm run preview
 ```
 
-> Sign-in is a sandbox — any email and password are accepted, and the session lives
-> only in your browser (nothing is stored or sent anywhere).
+> **Sign-in uses Firebase Authentication** (email/password). Without Firebase
+> env vars the login screen explains what to configure (see below); with them,
+> accounts are real and profiles + operational updates persist in Firestore.
+
+---
+
+## 🔐 Firebase setup (auth + Firestore)
+
+FoodFlow uses **Firebase Authentication** (email/password) and **Cloud
+Firestore** for user profiles and operational updates (delivery/shipment status
+on the Verify and Route screens persist to each user's private account).
+
+1. In the [Firebase console](https://console.firebase.google.com) create a
+   project and add a **Web app**.
+2. **Authentication → Sign-in method →** enable **Email/Password**.
+3. **Firestore Database → Create database** (production mode).
+4. Publish the included security rules in [`firestore.rules`](firestore.rules)
+   (console **Firestore → Rules**, or `firebase deploy --only firestore:rules`).
+   They are locked down: a user can read/write **only their own** document and
+   `operationalData` subcollection, with field + value validation.
+5. Copy the Web app config into a local `.env` (see [`.env.example`](.env.example)):
+   ```
+   VITE_FIREBASE_API_KEY=...
+   VITE_FIREBASE_AUTH_DOMAIN=...
+   VITE_FIREBASE_PROJECT_ID=...
+   VITE_FIREBASE_STORAGE_BUCKET=...
+   VITE_FIREBASE_MESSAGING_SENDER_ID=...
+   VITE_FIREBASE_APP_ID=...
+   ```
+
+> These `VITE_` values are **client-side** config — public by design once bundled
+> into any Firebase web app. Security comes from the Firestore **rules** above and
+> enabling Auth, not from hiding the config. Never put service-account keys here.
 
 ---
 
@@ -417,9 +448,26 @@ To use a sharper, higher-rate-limit keyed provider:
 The repo ships with `vercel.json` (SPA rewrites + immutable asset caching) and a
 Netlify `public/_redirects`, so client-side routing and deep links work on refresh.
 
-**Vercel (dashboard):** import the GitHub repo → framework **Vite** → build
-`npm run build` → output `dist`. Add `VITE_MAPTILER_KEY` under *Environment Variables*
-if you want keyed tiles. Deploy.
+**Auto-deploy (recommended):** import the GitHub repo into Vercel once → framework
+is auto-detected as **Vite** (build `npm run build`, output `dist`). Add the
+environment variables below under **Settings → Environment Variables**. After that,
+**every push to `main` deploys automatically** (and every PR gets a preview URL) —
+no CLI needed.
+
+**Environment variables to set in Vercel** (Production + Preview):
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `VITE_FIREBASE_API_KEY` | yes (for auth) | Firebase web config |
+| `VITE_FIREBASE_AUTH_DOMAIN` | yes | Firebase web config |
+| `VITE_FIREBASE_PROJECT_ID` | yes | Firebase web config |
+| `VITE_FIREBASE_STORAGE_BUCKET` | yes | Firebase web config |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | yes | Firebase web config |
+| `VITE_FIREBASE_APP_ID` | yes | Firebase web config |
+| `VITE_MAPTILER_KEY` | optional | sharper keyed map tiles |
+
+> After deploying, add your Vercel domain under Firebase **Authentication →
+> Settings → Authorized domains** so sign-in works in production.
 
 **Vercel (CLI):**
 ```bash
@@ -487,7 +535,7 @@ This is a **prototype / sandbox**. It demonstrates *how the real system would wo
 | `calculateSurplusRisk / Spoilage` | Perishability + weather ML models |
 | `calculateAllocation` (greedy) | LP / min-cost-flow solver with transport constraints |
 | Tamper-evident hashes (string) | Permissioned ledger (e.g. Hyperledger Fabric) |
-| localStorage auth | Real auth + role-based authorization |
+| ~~localStorage auth~~ → **Firebase Auth + Firestore** (done) | + role-based authorization |
 | Reconciliation numbers | IoT / weighbridge-verified receipts |
 
 The price-forecast model **is** trained on real data (metrics on the Impact
@@ -504,6 +552,7 @@ traceability ledger remain illustrative, and no blockchain transaction occurred.
 - [x] Train the price model on real mandi history (7-day-ahead, metrics live on Impact)
 - [x] Real dataset prices in the Market board + price-by-place view (Live mode)
 - [x] Per-event optimization for every commodity (not just the canonical scenario)
+- [x] Firebase Authentication (email/password) + Firestore persistence with locked-down rules
 - [ ] Reach `api.data.gov.in` + key → live Agmarknet prices (connector ready)
 - [ ] Wire the trained model to score live forecasts in-app (currently reports held-out metrics)
 - [ ] Backend for scheduled ingestion, persistence & secure credentials

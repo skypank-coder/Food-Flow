@@ -10,6 +10,9 @@ export function Field({
   placeholder,
   autoFocus,
   rightLabel,
+  required,
+  minLength,
+  autoComplete,
 }: {
   label: string;
   icon?: ReactNode;
@@ -19,6 +22,9 @@ export function Field({
   placeholder?: string;
   autoFocus?: boolean;
   rightLabel?: ReactNode;
+  required?: boolean;
+  minLength?: number;
+  autoComplete?: string;
 }) {
   return (
     <label className="block">
@@ -32,6 +38,9 @@ export function Field({
           type={type}
           value={value}
           autoFocus={autoFocus}
+          required={required}
+          minLength={minLength}
+          autoComplete={autoComplete}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           className={
@@ -76,8 +85,17 @@ export function Select({
 export function PasswordNote() {
   return (
     <p className="rounded-lg border border-dashed border-line-strong bg-surface-2 px-3 py-2 text-[11px] leading-relaxed text-ink-3">
-      Sandbox sign-in — any email and password are accepted. No credentials are stored or sent
-      anywhere; your session lives only in this browser.
+      Passwords are managed by Firebase Authentication. Your account profile and operational
+      updates are saved in Firestore.
+    </p>
+  );
+}
+
+export function FormError({ children }: { children: string | null }) {
+  if (!children) return null;
+  return (
+    <p role="alert" className="rounded-lg border border-risk/25 bg-risk-soft px-3 py-2 text-sm text-risk">
+      {children}
     </p>
   );
 }

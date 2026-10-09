@@ -2,23 +2,51 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { AuthShell } from "./AuthShell";
-import { Field, PasswordNote } from "./fields";
+import { Field, FormError, PasswordNote } from "./fields";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/lib/auth";
 
 export default function Login() {
-  const { signIn } = useAuth();
+  const { signIn, sendPasswordReset, demoSignIn, error: authError } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("ops@freshroots.in");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
     setBusy(true);
-    await signIn(email, password);
-    navigate("/command");
+    setError(null);
+    setNotice(null);
+    try {
+      await signIn(email, password);
+      navigate("/dashboard");
+    } catch (signInError) {
+      setError(signInError instanceof Error ? signInError.message : "Could not sign in.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!email.trim()) {
+      setError("Enter your email address first.");
+      return;
+    }
+    setResetBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await sendPasswordReset(email);
+      setNotice("If an account exists for that email, Firebase has sent a password reset link.");
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : "Could not send a reset email.");
+    } finally {
+      setResetBusy(false);
+    }
   };
 
   return (
@@ -34,6 +62,23 @@ export default function Login() {
         </>
       }
     >
+      {/* Pitch mode: get straight into the workspace. Live Firebase login
+          is kept below for when it's switched back on. */}
+      <Button
+        type="button"
+        size="lg"
+        className="w-full"
+        onClick={() => {
+          demoSignIn();
+          navigate("/dashboard");
+        }}
+      >
+        Enter demo workspace <ArrowRight size={16} />
+      </Button>
+      <div className="my-4 flex items-center gap-3 text-[11px] font-medium uppercase tracking-wide text-ink-3">
+        <span className="h-px flex-1 bg-line" /> or sign in with email <span className="h-px flex-1 bg-line" />
+      </div>
+
       <form onSubmit={submit} className="space-y-4">
         <Field
           label="Work email"
@@ -43,6 +88,8 @@ export default function Login() {
           onChange={setEmail}
           placeholder="you@company.in"
           autoFocus
+          autoComplete="email"
+          required
         />
         <Field
           label="Password"
@@ -50,11 +97,19 @@ export default function Login() {
           type="password"
           value={password}
           onChange={setPassword}
-          placeholder="••••••••"
-          rightLabel={<span className="text-xs text-ink-3 hover:text-ink">Forgot?</span>}
+          placeholder="Your password"
+          autoComplete="current-password"
+          required
+          rightLabel={
+            <button type="button" onClick={resetPassword} disabled={resetBusy} className="text-xs text-ink-3 hover:text-ink disabled:opacity-50">
+              {resetBusy ? "Sending…" : "Forgot?"}
+            </button>
+          }
         />
-        <Button type="submit" size="lg" className="w-full" disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"} <ArrowRight size={16} />
+        <FormError>{error ?? authError}</FormError>
+        {notice && <p role="status" className="text-sm text-ok">{notice}</p>}
+        <Button type="submit" variant="secondary" size="lg" className="w-full" disabled={busy}>
+          {busy ? "Signing in…" : "Sign in with email"} <ArrowRight size={16} />
         </Button>
         <PasswordNote />
       </form>

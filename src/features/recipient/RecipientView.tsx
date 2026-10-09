@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check, Clock, PackageCheck, Timer } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -8,6 +7,7 @@ import { RECIPIENTS } from "@/data/mockData";
 import { RECON, CHAIN, type ReconStatus } from "@/data/delivery";
 import { tonnes, hours } from "@/lib/format";
 import type { Recipient } from "@/types";
+import { useOperationalRecords } from "@/hooks/useOperationalRecords";
 
 const RECON_DISCREPANCY = +RECON.reduce((a, r) => a + (r.discrepancyT ?? 0), 0).toFixed(1);
 
@@ -24,16 +24,15 @@ const statusMeta: Record<Recipient["status"], { tone: "neutral" | "warn" | "ok";
 };
 
 export default function RecipientView() {
-  const [items, setItems] = useState<Recipient[]>(RECIPIENTS);
-
-  const advance = (id: string) =>
-    setItems((prev) =>
-      prev.map((r) =>
-        r.id === id
-          ? { ...r, status: r.status === "offered" ? "accepted" : r.status === "accepted" ? "received" : "received" }
-          : r,
-      ),
-    );
+  const { records, loading, saving, error, save } = useOperationalRecords();
+  const items = RECIPIENTS.map((recipient) => {
+    const saved = records.find((record) => record.kind === "recipient" && record.id === recipient.id);
+    return { ...recipient, status: saved?.kind === "recipient" ? saved.status : recipient.status };
+  });
+  const advance = (recipient: Recipient) => {
+    const status = recipient.status === "offered" ? "accepted" : "received";
+    void save({ id: recipient.id, kind: "recipient", status });
+  };
 
   const inbound = items.filter((r) => r.status !== "received").reduce((a, r) => a + r.incomingT, 0);
 
@@ -44,6 +43,12 @@ export default function RecipientView() {
         title="Delivery confirmations"
         sub="Did it arrive? Recipient confirmations across incoming lots — accept, then confirm receipt."
       />
+
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-3">
+        <span>Delivery updates save to your private Firebase account.</span>
+        {loading && <span role="status">Loading saved updates…</span>}
+      </div>
+      {error && <p role="alert" className="mb-3 rounded-lg border border-risk/25 bg-risk-soft px-3 py-2 text-sm text-risk">{error}</p>}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <MiniKpi label="Inbound now" value={tonnes(inbound)} icon={<PackageCheck size={16} />} />
@@ -94,7 +99,7 @@ export default function RecipientView() {
         <SectionTitle eyebrow="Incoming" title="Food offered to you" sub="Accept to reserve capacity; confirm receipt when it arrives." />
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {items.map((r) => (
-            <RecipientCard key={r.id} r={r} onAdvance={() => advance(r.id)} />
+            <RecipientCard key={r.id} r={r} onAdvance={() => advance(r)} disabled={loading || saving === `recipient-${r.id}`} />
           ))}
         </div>
       </Card>
@@ -102,7 +107,7 @@ export default function RecipientView() {
   );
 }
 
-function RecipientCard({ r, onAdvance }: { r: Recipient; onAdvance: () => void }) {
+function RecipientCard({ r, onAdvance, disabled }: { r: Recipient; onAdvance: () => void; disabled: boolean }) {
   const meta = statusMeta[r.status];
   return (
     <div className="rounded-2xl border border-line bg-surface p-4">
@@ -131,12 +136,12 @@ function RecipientCard({ r, onAdvance }: { r: Recipient; onAdvance: () => void }
 
       <div className="mt-4">
         {r.status === "offered" && (
-          <Button size="sm" className="w-full" onClick={onAdvance}>
+          <Button size="sm" className="w-full" onClick={onAdvance} disabled={disabled}>
             Accept offer
           </Button>
         )}
         {r.status === "accepted" && (
-          <Button size="sm" variant="secondary" className="w-full" onClick={onAdvance}>
+          <Button size="sm" variant="secondary" className="w-full" onClick={onAdvance} disabled={disabled}>
             <Check size={15} /> Confirm receipt
           </Button>
         )}

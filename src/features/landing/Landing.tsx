@@ -24,11 +24,6 @@ import { FORECASTS, NATIONAL_DEMAND } from "@/data/mockData";
 import { KOLAR_SCENARIO, PORTFOLIO } from "@/data/scenario";
 import { tonnes } from "@/lib/format";
 
-const NAV_LINKS = [
-  ["Platform", "#platform"],
-  ["Network", "#network"],
-];
-
 export default function Landing() {
   const f = KOLAR_SCENARIO.forecast;
   const [menu, setMenu] = useState(false);
@@ -39,13 +34,6 @@ export default function Landing() {
       <header className="sticky top-0 z-40 border-b border-line bg-canvas/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
           <Logo />
-          <nav className="hidden items-center gap-7 text-sm font-medium text-ink-2 md:flex">
-            {NAV_LINKS.map(([label, href]) => (
-              <a key={label} href={href} className="hover:text-ink">
-                {label}
-              </a>
-            ))}
-          </nav>
           <div className="hidden items-center gap-2 md:flex">
             <Link to="/login" className="rounded-xl px-3 py-2 text-sm font-semibold text-ink-2 hover:text-ink">
               Sign in
@@ -63,12 +51,7 @@ export default function Landing() {
         </div>
         {menu && (
           <div className="border-t border-line bg-surface px-5 py-3 md:hidden">
-            {NAV_LINKS.map(([label, href]) => (
-              <a key={label} href={href} onClick={() => setMenu(false)} className="block py-2 text-sm text-ink-2">
-                {label}
-              </a>
-            ))}
-            <div className="mt-2 flex gap-2">
+            <div className="flex gap-2">
               <Link to="/login" className="flex-1 rounded-xl border border-line-strong py-2 text-center text-sm font-semibold text-ink">Sign in</Link>
               <Link to="/signup" className="flex-1 rounded-xl bg-brand py-2 text-center text-sm font-semibold text-white">Start free</Link>
             </div>
@@ -275,46 +258,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ---- CTA band (themed, no photo) ---- */}
-      <section className="px-5 py-16">
-        <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-brand/20 bg-brand-tint">
-          {/* subtle themed texture */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.5]"
-            style={{
-              backgroundImage:
-                "radial-gradient(30rem 30rem at 85% -20%, rgb(var(--c-brand-soft) / 0.45), transparent 60%), radial-gradient(22rem 22rem at 0% 120%, rgb(var(--c-warn-soft)), transparent 60%)",
-            }}
-            aria-hidden
-          />
-          <div className="relative grid items-center gap-8 px-8 py-14 sm:px-12 lg:grid-cols-[1.3fr_1fr]">
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight text-brand-strong sm:text-4xl">
-                Route surplus before it becomes waste
-              </h2>
-              <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-brand-strong/80">
-                Open a workspace and follow a real surplus event from forecast to verified impact in
-                under two minutes.
-              </p>
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <Link to="/signup" className="inline-flex h-12 items-center gap-2 rounded-xl bg-brand px-6 text-[15px] font-semibold text-white shadow-card transition-all hover:bg-brand-strong active:scale-[0.98]">
-                  Start free <ArrowRight size={18} />
-                </Link>
-                <Link to="/login" className="inline-flex h-12 items-center gap-2 rounded-xl border border-brand/30 bg-surface px-6 text-[15px] font-semibold text-brand-strong hover:bg-surface-2">
-                  Sign in
-                </Link>
-              </div>
-            </div>
-            {/* themed stat panel instead of a photo */}
-            <div className="grid grid-cols-3 gap-3 lg:grid-cols-1">
-              <CtaStat value={tonnes(PORTFOLIO.predictedSurplusT)} label="surplus forecast across India" />
-              <CtaStat value={tonnes(KOLAR_SCENARIO.counterfactual.foodPreservedT)} label="preserved per intervention" />
-              <CtaStat value={`${FORECASTS.length}`} label="live events, 11 states" />
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ---- Footer ---- */}
       <footer className="border-t border-line bg-canvas">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:grid-cols-2 lg:grid-cols-4">
@@ -391,15 +334,6 @@ function Feature({
         </ul>
       </div>
       <Img src={img} alt={imgAlt} className="aspect-[4/3] w-full rounded-2xl border border-line shadow-card" />
-    </div>
-  );
-}
-
-function CtaStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-2xl border border-brand/15 bg-surface/80 p-4 backdrop-blur">
-      <div className="nums text-2xl font-extrabold text-brand-strong">{value}</div>
-      <div className="mt-0.5 text-xs text-brand-strong/70">{label}</div>
     </div>
   );
 }

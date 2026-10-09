@@ -16,6 +16,7 @@
     "ml:export:prices": "python ml/export_prices.py"
   },
   "dependencies": {
+    "firebase": "^11.10.0",
     "framer-motion": "11.11.17",
     "leaflet": "^1.9.4",
     "lucide-react": "0.456.0",
